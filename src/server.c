@@ -29,10 +29,6 @@ int server_create_listener(uint16_t port)
     setsockopt(fd, IPPROTO_TCP, TCP_FASTOPEN, &qlen, sizeof(qlen));
 #endif
 
-    int sndbuf = 1 << 20;
-    int rcvbuf = 1 << 20;
-    setsockopt(fd, SOL_SOCKET, SO_SNDBUF, &sndbuf, sizeof(sndbuf));
-    setsockopt(fd, SOL_SOCKET, SO_RCVBUF, &rcvbuf, sizeof(rcvbuf));
 
     struct sockaddr_in addr;
     __builtin_memset(&addr, 0, sizeof(addr));
@@ -74,16 +70,11 @@ err_t server_init(server_t *s, uint16_t port, int num_workers, bool pin_cpus)
     s->cfg.max_conns_per_worker = MAX_CONNECTIONS / (uint32_t)num_workers;
     s->num_workers              = num_workers;
 
-    int listen_fd = server_create_listener(port);
-    if (UNLIKELY(listen_fd == -1))
-        return ERR_SYSCALL;
-
-    s->cfg.listen_fd = listen_fd;
+    s->cfg.listen_fd = -1;
 
     for (int i = 0; i < num_workers; i++) {
         err_t err = worker_init(&s->workers[i], &s->cfg, i);
         if (UNLIKELY(err != ERR_OK)) {
-            close(listen_fd);
             for (int j = 0; j < i; j++)
                 worker_destroy(&s->workers[j]);
             return err;
@@ -127,11 +118,6 @@ void server_stop(server_t *s)
 
 void server_destroy(server_t *s)
 {
-    if (s->cfg.listen_fd >= 0) {
-        close(s->cfg.listen_fd);
-        s->cfg.listen_fd = -1;
-    }
-
     for (int i = 0; i < s->num_workers; i++)
         worker_destroy(&s->workers[i]);
 }

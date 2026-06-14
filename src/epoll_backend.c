@@ -213,7 +213,7 @@ void epoll_backend_destroy(worker_t *w)
 HOT void epoll_backend_run(worker_t *w)
 {
     int    epfd   = w->event_fd;
-    static __thread struct epoll_event events[EPOLL_MAX_EVENTS];
+    struct epoll_event events[EPOLL_MAX_EVENTS];
 
     conn_t *sentinel = NULL;
     if (UNLIKELY(epoll_add(epfd, w->listen_fd,

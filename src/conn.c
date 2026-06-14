@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "conn.h"
 #include "platform.h"
 #include <sys/mman.h>
@@ -50,6 +51,7 @@ conn_t *conn_pool_acquire(conn_pool_t *pool)
 void conn_pool_release(conn_pool_t *pool, conn_t *c)
 {
     uint32_t idx = (uint32_t)(c - pool->conns);
+    assert(pool->top < pool->capacity && "double-release or pool corruption");
     pool->free_stack[pool->top++] = idx;
 }
 

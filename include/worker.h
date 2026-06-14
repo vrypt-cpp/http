@@ -22,8 +22,6 @@ typedef struct worker {
     int             cpu_id;
 
     conn_pool_t     conn_pool;
-    arena_t         arena;
-
     worker_metrics_t metrics;
 
     atomic_bool     running;

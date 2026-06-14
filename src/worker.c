@@ -1,4 +1,5 @@
 #include "worker.h"
+#include "server.h"
 #include "platform.h"
 #include "conn.h"
 #include "http.h"
@@ -22,9 +23,13 @@
 err_t worker_init(worker_t *w, const server_config_t *cfg, int id)
 {
     w->id         = id;
-    w->listen_fd  = cfg->listen_fd;
     w->event_fd   = -1;
-    w->cpu_id     = id;
+    w->cpu_id     = cfg->pin_cpus ? id : -1;
+
+    int lfd = server_create_listener(cfg->port);
+    if (UNLIKELY(lfd == -1))
+        return ERR_SYSCALL;
+    w->listen_fd = lfd;
 
     atomic_store_explicit(&w->running, true, memory_order_relaxed);
 
@@ -34,16 +39,9 @@ err_t worker_init(worker_t *w, const server_config_t *cfg, int id)
     if (UNLIKELY(err != ERR_OK))
         return err;
 
-    err = arena_init(&w->arena, (size_t)4 * 1024 * 1024);
-    if (UNLIKELY(err != ERR_OK)) {
-        conn_pool_destroy(&w->conn_pool);
-        return err;
-    }
-
 #if BACKEND_EPOLL
     err = epoll_backend_init(w);
     if (UNLIKELY(err != ERR_OK)) {
-        arena_destroy(&w->arena);
         conn_pool_destroy(&w->conn_pool);
         return err;
     }
@@ -59,7 +57,10 @@ void worker_destroy(worker_t *w)
 #endif
 
     conn_pool_destroy(&w->conn_pool);
-    arena_destroy(&w->arena);
+    if (w->listen_fd >= 0) {
+        close(w->listen_fd);
+        w->listen_fd = -1;
+    }
 }
 
 void *worker_run(void *arg)

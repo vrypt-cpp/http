@@ -15,7 +15,6 @@
 #define LIKELY(x)           __builtin_expect(!!(x), 1)
 #define UNLIKELY(x)         __builtin_expect(!!(x), 0)
 #define PREFETCH_R(p)       __builtin_prefetch((p), 0, 3)
-#define PREFETCH_W(p)       __builtin_prefetch((p), 1, 3)
 #define FORCE_INLINE        __attribute__((always_inline)) static inline
 #define COLD                __attribute__((cold))
 #define HOT                 __attribute__((hot))

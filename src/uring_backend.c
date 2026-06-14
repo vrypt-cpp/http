@@ -50,7 +50,6 @@ FORCE_INLINE void submit_recv(struct io_uring *ring, conn_t *c)
                        c->recv_buf + c->recv_len,
                        space, 0);
     sqe->user_data = SQE_USER_DATA(OP_RECV, c);
-    io_uring_sqe_set_flags(sqe, IOSQE_FIXED_FILE);
 }
 
 FORCE_INLINE void submit_send(struct io_uring *ring, conn_t *c)
@@ -62,7 +61,6 @@ FORCE_INLINE void submit_send(struct io_uring *ring, conn_t *c)
                        c->resp_len - c->resp_sent,
                        MSG_NOSIGNAL);
     sqe->user_data = SQE_USER_DATA(OP_SEND, c);
-    io_uring_sqe_set_flags(sqe, IOSQE_FIXED_FILE);
 }
 
 FORCE_INLINE void submit_close(struct io_uring *ring, conn_t *c,

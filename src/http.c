@@ -44,21 +44,22 @@ void http_responses_init(void) {}
 #define STEP_SP1         3
 #define STEP_SLASH       4
 #define STEP_SP2         5
-#define STEP_H           6
-#define STEP_HT          7
-#define STEP_HTT         8
-#define STEP_HTTP        9
-#define STEP_PROTO_SLASH 10
-#define STEP_ONE         11
-#define STEP_DOT         12
-#define STEP_ONE2        13
-#define STEP_CR1         14
-#define STEP_LF1         15
-#define STEP_HDR_SCAN    16
-#define STEP_HDR_CR      17
-#define STEP_HDR_LF      18
-#define STEP_HDR_CR2     19
-#define STEP_DONE        20
+#define STEP_PATH        6
+#define STEP_H           7
+#define STEP_HT          8
+#define STEP_HTT         9
+#define STEP_HTTP        10
+#define STEP_PROTO_SLASH 11
+#define STEP_ONE         12
+#define STEP_DOT         13
+#define STEP_ONE2        14
+#define STEP_CR1         15
+#define STEP_LF1         16
+#define STEP_HDR_SCAN    17
+#define STEP_HDR_CR      18
+#define STEP_HDR_LF      19
+#define STEP_HDR_CR2     20
+#define STEP_DONE        21
 #define STEP_ERROR       255
 
 FORCE_INLINE bool is_other_method_byte(uint8_t b)
@@ -106,8 +107,12 @@ HOT http_response_t http_parse(conn_t *c)
             step = STEP_ERROR; goto done;
 
         case STEP_SLASH:
-            if (LIKELY(ch == '/')) { step = STEP_SP2;  break; }
+            if (LIKELY(ch == '/')) { step = STEP_PATH; break; }
             step = STEP_ERROR; goto done;
+
+        case STEP_PATH:
+            if (ch == ' ') { step = STEP_H;    break; }
+            break;
 
         case STEP_SP2:
             if (LIKELY(ch == ' ')) { step = STEP_H;    break; }

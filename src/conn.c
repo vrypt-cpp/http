@@ -1,6 +1,6 @@
+#include "platform.h"
 #include <assert.h>
 #include "conn.h"
-#include "platform.h"
 #include <sys/mman.h>
 #include <string.h>
 #include <stdint.h>
